@@ -32,7 +32,7 @@ class Pelota():
             ]
         )
         self.vector_x =(np.matmul(self.matriz_f,vector_x)) + self.vector_w
-        self.imprimir_resultados()
+        #self.imprimir_resultados()
         time.sleep(0.004)
 
     def imprimir_resultados(self):

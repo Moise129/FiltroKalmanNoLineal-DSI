@@ -15,11 +15,13 @@ class Jugador():
 			[0,0,self.vector_sigma[2][0]**2,0],
 			[0,0,0,self.vector_sigma[3][0]**2]
 		])#np.matmul(self.vector_sigma,self.vector_sigma.transpose())
+
 		self.vector_sigma_0 = np.array([[self.vector_sigma[0][0]],[self.vector_sigma[1][0]]])
 		self.matriz_R = np.array([
 			[self.vector_sigma[0][0]**2,0],
 			[0,self.vector_sigma[1][0]**2],
 		])
+
 		#np.matmul(self.vector_sigma_0,self.vector_sigma_0.transpose())
 		self.matriz_H = np.array([[vector_x[0][0],0,0,0],[0,vector_x[1][0],0,0]])
 		self.vector_V = np.array(
@@ -47,7 +49,7 @@ class Jugador():
 		self.vector_innovacion = None #Formula 5
 		self.matriz_ganancia = None #Formula6
 		self.proceso()
-		self.imprimir_resultados()
+		#self.imprimir_resultados()
 
 
 	def proceso(self):

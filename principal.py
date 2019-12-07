@@ -120,6 +120,8 @@ class Ventana:
         self.y_real = []
         self.x_predicha = []
         self.y_predicha = []
+        self.x_predicha_uscented = []
+        self.y_predicha_uscented = []
 
     def accion_boton(self):
         self.reiniciar_arreglos()
@@ -155,10 +157,10 @@ class Ventana:
     def graficar(self):
         plt.figure()   #  Añade un nuevo gráfico y lo activa
         plt.grid()
-        plt.plot(self.x_real,self.y_real, linestyle='-',color='r',marker='*') #marker='.'
+        plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
         plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
-        plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle='-',color='b')
-        plt.legend(('Real', 'Predicha','ud'), prop = {'size': 10}, loc='upper left')
+        plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
+        plt.legend(('REAL', 'KF(Lineal)','UKF(No Lineal)'), prop = {'size': 10}, loc='upper left')
         plt.xlabel("x")
         plt.ylabel("y")
         plt.title("Grafico Comparativo")
