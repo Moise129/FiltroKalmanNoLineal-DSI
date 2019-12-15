@@ -101,24 +101,32 @@ class Ventana:
     def accion_boton(self):
         self.reiniciar_arreglos()
         dt,sx,svx,sy,svy = self.obtener_valor_variables()
+
         self.pelota = Pelota()
+        filtro = Filtro( self.pelota.Xk, self.pelota.σQ, self.pelota.F)
+        
         #self.filtro = Filtro(self.pelota.Xk, self.pelota.σQ, self.pelota.F)
+
         for i in range(10):
-            self.pelota.obtener_estado(self.pelota.Xk)
             self.graficar_por_iteracion()
+
+            filtro.iniciar_proceso(self.pelota.Zk)
             
-            filtro = Filtro(self.pelota.Xk,self.pelota.Zk, self.pelota.σQ, self.pelota.F)
+            #filtro.imprimir_resultados()
 
-            self.x_real.append(self.pelota.Xk[0][0])
-            self.y_real.append(self.pelota.Xk[1][0])
+            self.x_real.append( self.pelota.Xk[0][0] ) #Real
+            self.y_real.append( self.pelota.Xk[1][0] ) #Real
 
-            self.x_predicha.append(filtro.X[0][0])
-            self.y_predicha.append(filtro.X[1][0])
-
-            self.x_predicha_uscented.append(filtro.Xˆk[0][0])
-            self.y_predicha_uscented.append(filtro.Xˆk[1][0])
+            self.x_predicha.append(filtro.X[0][0].copy()) #Predicha
+            self.y_predicha.append(filtro.X[1][0].copy()) #Predicha
             
 
+            self.x_predicha_uscented.append(filtro.Xˆk[0][0].copy()) #Estimada
+            self.y_predicha_uscented.append(filtro.Xˆk[1][0].copy()) #Estimada
+
+            print(id(filtro.X),id(filtro.Xˆk))
+            self.pelota.obtener_estado(self.pelota.Xk)
+            
 
         print("X real: ", self.x_real)
         print("Y Real: ", self.y_real)
@@ -136,7 +144,7 @@ class Ventana:
         plt.ion()
         plt.grid()
         plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
-        plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
+        plt.plot(self.x_predicha,self.y_predicha, linestyle='-',color='g')
         plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
         plt.legend(('Real', 'Predicha','Estimada'), prop = {'size': 10}, loc='upper left')
         plt.xlabel("x")

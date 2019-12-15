@@ -5,17 +5,17 @@ import math
 
 class Pelota():
     #Δ=delta  && σ=sigma
-    def __init__(self,Δt=1,σx=0.010,σvx=0.010,σy=0.020,σvy=0.020): 
+    def __init__(self,Δt=1,σx=0.10,σvx=0.10,σy=0.20,σvy=0.20): 
         self.F = np.array([[1,0,Δt,0],[0,1,0,Δt],[0,0,1,0],[0,0,0,1]]) 
 
         self.σQ = np.array([[σx],[σy],[σvx],[σvy]])  #Vector sigmas
         self.W = np.random.normal(0,self.σQ)
-        self.σR = np.array([[σx],[σy],[σvx],[σvy]]) **2 #,[σvx],[σvy]
+        self.σR = np.array([[σx],[σy],[0],[0]]) **2 #,[σvx],[σvy]
         self.V = np.random.normal(0,self.σR)
         self.Xk = None
         self.Zk = None
 
-        self.obtener_estado(np.array([[1],[1],[1],[1]]))
+        self.obtener_estado( np.array([[1],[1],[1],[1]]) )
         self.imprimir_resultados()
 
     def obtener_estado(self,Xk_1):
@@ -23,9 +23,9 @@ class Pelota():
         self.V = np.random.normal(0,self.σR)
 
         self.Xk = (np.matmul(self.F,Xk_1)) + self.W ## vector de estado (4*1)
-        _Xk = self.Xk #Generando una copia
+        _Xk = self.Xk.copy() #Generando una copia
+
         self.Zk = self.H(_Xk) + self.V  # vector de estado (2*1)
-    
         
 
     def H(self,_Xk):
