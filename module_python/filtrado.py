@@ -14,7 +14,7 @@ class Filtro():
         self.PK = self.Q
         self.R = np.array([[σQ[0][0]**2,0,0,0],[0,σQ[1][0]**2,0,0],[0,0,σQ[2][0]**2,0],[0,0,0,σQ[3][0]**2]])
         self.F = F
-        self.X = None
+        self.predicha= None
         #self.imprimir_resultados()
 
     # sE APAGO MI CELULAR , AHORITA PRENDE
@@ -26,9 +26,9 @@ class Filtro():
         Pˆxk_zk = np.zeros((4,4),)
 
         self.Xˆk = np.matmul(self.F,copy.copy(self.Xˆk)) #ᶦ
-        self.X = copy.copy(self.Xˆk)
+        self.predicha = np.matmul(self.F,copy.copy(self.Xˆk))
 
-        PˆK = np.matmul(np.matmul(self.F,self.PK),np.transpose(self.F))  + self.Q
+        PˆK = np.matmul(np.matmul(self.F,self.PK),np.transpose(self.F))  + 1
         Xᶦk = np.concatenate(( copy.copy(self.Xˆk), (copy.copy(self.Xˆk) + (PˆK**1/2) )  , (copy.copy(self.Xˆk) - (PˆK**1/2) )),axis=1)
 
         Zᶦk = self.H(Xᶦk) #+ np.random.normal(0,self.σQ**2)
