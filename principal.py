@@ -1,10 +1,12 @@
 from tkinter import *  
 from tkinter import ttk, font
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
-from module_python.pelota import Pelota
-from module_python.jugador import Jugador
-from module_python.filtro import Filtro
+from module_python.proceso_real import Pelota
+from module_python.filtrado import Filtro
+
 import threading
 
 class Ventana:
@@ -13,13 +15,7 @@ class Ventana:
         self.ventana.title("Filtro Kalman Lineal")
         self.fuente = font.Font(weight='bold')
         self.ventana.configure(bg = 'beige')
-        self.t = DoubleVar()
         self.dt = DoubleVar()
-        self.g = DoubleVar()
-        self.x = DoubleVar()
-        self.y = DoubleVar()
-        self.vx = DoubleVar()
-        self.vy = DoubleVar()
         self.sx = DoubleVar()
         self.svx = DoubleVar()
         self.sy = DoubleVar()
@@ -39,29 +35,19 @@ class Ventana:
         self.seccion_configuracion()
     
     def inicializar_variables(self):
-        self.t.set(1.3)
         self.dt.set(1.0)
-        self.g.set(9.81)
-        self.x.set(1)
-        self.y.set(1)
-        self.vx.set(1)
-        self.vy.set(1)
         self.sx.set(10)
-        self.svx.set(10)
-        self.sy.set(20)
+        self.svx.set(20)
+        self.sy.set(10)
         self.svy.set(20)
 
     def obtener_valor_variables(self):
         dt = float(self.dt.get())
-        x = float(self.x.get())
-        y = float(self.y.get())
-        vx = float(self.vx.get())
-        vy = float(self.vy.get())
         sx = float(self.sx.get()) / 100
         svx = float(self.svx.get()) / 100
         sy = float(self.sy.get()) / 100
         svy = float(self.svy.get()) / 100
-        return dt,x,y,vx,vy,sx,svx,sy,svy
+        return dt,sx,svx,sy,svy
 
     def seccion_configuracion(self):
         Label(self.ventana, text="Filtro Kalman Lineal",font=self.fuente).grid(pady=5, row=0, column=0,columnspan=2)
@@ -72,10 +58,11 @@ class Ventana:
         self.seccion_de_condiciones_iniciales(f_configuration)
         Button(self.ventana, text="Iniciar Filtro", width=50, bg="green",command=self.accion_boton).grid(padx=10, pady=10, row=3, column=0, columnspan=2)
     
+
     def seccion_variables_constantes(self,f_configuration):
         f_configuration_init = ttk.Frame(f_configuration, borderwidth=2, padding=(5,5))
         f_configuration_init.grid( pady=5, row=1, column=1)
-        Label(f_configuration_init, text="Constantes",font=self.fuente).grid(pady=5,padx=15, row=0, column=0,columnspan=2)
+        Label(f_configuration_init, text="----------",font=self.fuente).grid(pady=5,padx=15, row=0, column=0,columnspan=2)
 
         Label(f_configuration_init, text="dt:").grid( pady=5, row=1, column=0)
         entry_dt = Entry(f_configuration_init,textvariable=self.dt, width=10)
@@ -88,19 +75,6 @@ class Ventana:
         f_configuration_cond_init.grid( pady=5, row=1, column=2)
         Label(f_configuration_cond_init, text="Condiciones Iniciales",font=self.fuente).grid(pady=5,padx=15, row=0, column=0,columnspan=6)
 
-        Label(f_configuration_cond_init, text="x:").grid(pady=5, row=1, column=0)
-        Label(f_configuration_cond_init, text="vx:").grid( pady=5, row=2, column=0)
-        entry_x = Entry(f_configuration_cond_init,textvariable=self.x, width=10)
-        entry_x.grid(padx=5, row=1, column=1)
-        entry_vx = Entry(f_configuration_cond_init,textvariable=self.vx, width=10)
-        entry_vx.grid(padx=5, row=2, column=1)
-
-        Label(f_configuration_cond_init, text="y:").grid(pady=5, row=1, column=2)
-        Label(f_configuration_cond_init, text="vy:").grid( pady=5, row=2, column=2)
-        entry_y = Entry(f_configuration_cond_init,textvariable=self.y, width=10)
-        entry_y.grid(padx=5, row=1, column=3)
-        entry_vy = Entry(f_configuration_cond_init,textvariable=self.vy, width=10)
-        entry_vy.grid(padx=5, row=2, column=3)
 
         Label(f_configuration_cond_init, text="sx:").grid(pady=5, row=1, column=4)
         Label(f_configuration_cond_init, text="svx:").grid( pady=5, row=2, column=4)
@@ -115,6 +89,7 @@ class Ventana:
         entry_sy.grid(padx=5, row=1, column=7)
         entry_svy = Entry(f_configuration_cond_init,textvariable=self.svy, width=10)
         entry_svy.grid(padx=5, row=2, column=7)
+
     def reiniciar_arreglos(self):
         self.x_real = []
         self.y_real = []
@@ -125,25 +100,25 @@ class Ventana:
 
     def accion_boton(self):
         self.reiniciar_arreglos()
-        dt,x,y,vx,vy,sx,svx,sy,svy = self.obtener_valor_variables()
-        self.pelota = Pelota(dt,x,y,vx,vy,sx,svx,sy,svy)
-        print(self.pelota.vector_x)
-        """ pelota = Pelota(dt,x,y,vx,vy,sx,svx,sy,svy)
-        t = threading.Thread(target=pelotita.obtener_estado(pelota.vector_x))
-        t.start() """
+        dt,sx,svx,sy,svy = self.obtener_valor_variables()
+        self.pelota = Pelota()
+        #self.filtro = Filtro(self.pelota.Xk, self.pelota.σQ, self.pelota.F)
         for i in range(10):
-            self.pelota.obtener_estado(self.pelota.vector_x)
-            self.x_real.append(self.pelota.vector_x[0][0])
-            self.y_real.append(self.pelota.vector_x[1][0])
-
-            jugador = Jugador(self.pelota.matriz_f, self.pelota.vector_x,0,1,1,1,self.pelota.vector_sigma)
-            filtro_unscented = Filtro(1,self.pelota.vector_x[0][0],self.pelota.vector_x[1][0],self.pelota.vector_sigma[0][0],self.pelota.vector_sigma[1][0])
+            self.pelota.obtener_estado(self.pelota.Xk)
+            self.graficar_por_iteracion()
             
-            self.x_predicha.append(jugador.vector_prediccion_x[0][0])
-            self.y_predicha.append(jugador.vector_prediccion_x[1][0])
+            filtro = Filtro(self.pelota.Xk,self.pelota.Zk, self.pelota.σQ, self.pelota.F)
 
-            self.x_predicha_uscented.append(filtro_unscented.Xˆk[0][0])
-            self.y_predicha_uscented.append(filtro_unscented.Xˆk[1][0])
+            self.x_real.append(self.pelota.Xk[0][0])
+            self.y_real.append(self.pelota.Xk[1][0])
+
+            self.x_predicha.append(filtro.X[0][0])
+            self.y_predicha.append(filtro.X[1][0])
+
+            self.x_predicha_uscented.append(filtro.Xˆk[0][0])
+            self.y_predicha_uscented.append(filtro.Xˆk[1][0])
+            
+
 
         print("X real: ", self.x_real)
         print("Y Real: ", self.y_real)
@@ -152,7 +127,25 @@ class Ventana:
         print("X Predicha unscented: ", self.x_predicha_uscented)
         print("Y Predicha unscented: ", self.y_predicha_uscented)
 
-        self.graficar()
+        #self.graficar()
+        #self.tabla_de_datos()
+        
+    def graficar_por_iteracion(self):
+        #plt.figure()   #  Añade un nuevo gráfico y lo activa
+        plt.cla()
+        plt.ion()
+        plt.grid()
+        plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
+        plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
+        plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
+        plt.legend(('Real', 'Predicha','Estimada'), prop = {'size': 10}, loc='upper left')
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title("Grafico Comparativo")
+        plt.show()
+        plt.pause(0.05)
+        
+        
 
     def graficar(self):
         plt.figure()   #  Añade un nuevo gráfico y lo activa
@@ -160,10 +153,30 @@ class Ventana:
         plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
         plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
         plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
-        plt.legend(('REAL', 'KF(Lineal)','UKF(No Lineal)'), prop = {'size': 10}, loc='upper left')
+        plt.legend(('Real', 'Predicha','Estimada'), prop = {'size': 10}, loc='upper left')
         plt.xlabel("x")
         plt.ylabel("y")
         plt.title("Grafico Comparativo")
+        plt.close()
+        #plt.show()
+
+
+
+    def tabla_de_datos(self):
+        fig, ax = plt.subplots()
+        ax.axis('off')
+        ax.axis('tight')
+
+        parametros= np.arange(len(self.x_real))
+        df = pd.DataFrame({'Caso x' : np.array(self.x_real).tolist(),
+                        'Caso y' : np.array(self.y_real).tolist(),
+                        'Caso x1' : np.array(self.x_predicha).tolist(),
+                        'Caso y1' : np.array(self.y_predicha).tolist(),
+                        'Caso x2' : np.array(self.x_predicha_uscented).tolist(),
+                        'Caso y2' : np.array(self.y_predicha_uscented).tolist()})
+
+        ax.table(cellText=df.values, rowLabels=parametros, colLabels=df.columns, cellLoc='center', loc='center')
+        fig.tight_layout()
         plt.show()
 
 if __name__ == '__main__':
