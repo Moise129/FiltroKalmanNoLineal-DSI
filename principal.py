@@ -119,14 +119,14 @@ class Ventana:
             self.y_real.append(self.pelota.Xk[1][0].copy()) #Real
             print("X real: ", self.x_real[i])
             print("y real: ", self.y_real[i])
-            self.x_predicha.append(filtro.predicha[0][0].copy()) #Predicha
-            self.y_predicha.append(filtro.predicha[1][0].copy()) #Predicha
+
             self.x_predicha_uscented.append(filtro.Xˆk[0][0].copy()) #Estimada
             self.y_predicha_uscented.append(filtro.Xˆk[1][0].copy()) #Estimada
             print("X estimada: ", self.x_predicha_uscented[i])
             print("Y estimada: ", self.y_predicha_uscented[i])
 
-            
+            self.x_predicha.append(filtro.predicha[0][0].copy()) #Predicha
+            self.y_predicha.append(filtro.predicha[1][0].copy()) #Predicha
             print("X predicha: ", self.x_predicha[i])
             print("X predicha: ", self.y_predicha[i])
 

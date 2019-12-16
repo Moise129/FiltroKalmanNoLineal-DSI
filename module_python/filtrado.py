@@ -29,19 +29,24 @@ class Filtro():
         self.Xˆk = np.matmul(self.F, self.Xˆk) #ᶦ
         self.predicha = np.matmul(self.F, self.Xˆk) # predicha
         print("Xˆk predicha:", self.predicha)
-
         PˆK = np.matmul(np.matmul(self.F,self.PK),np.transpose(self.F))  + 1
+
+        #actualizacion
+
+        #puntos sigmas
         Xᶦk = np.concatenate(( self.predicha, (self.predicha + (PˆK**1/2) )  , (self.predicha - (PˆK**1/2) )),axis=1)
 
         Zᶦk = self.H(Xᶦk) #+ np.random.normal(0,self.σQ**2)
         Zˆk = (np.mean(Zᶦk , axis=1)).reshape((4,1))
-        print("Xᶦk shape:", Xᶦk.shape)
+        """ print("Xᶦk shape:", Xᶦk.shape)
         print("Xᶦk:\n", Xᶦk)
-        print("Zᶦk:\n", Zᶦk)
+        print("Zᶦk:\n", Zᶦk.shape)
+        print("Zᶦk:\n", Zᶦk) """
         
         for i in range(0,9):
             Pˆzk_zk = Pˆzk_zk + (np.matmul((Zᶦk[:,i].reshape((4,1)) - Zˆk) , np.transpose(Zᶦk[:,i].reshape((4,1)) - Zˆk) ) ) #Ok
             Pˆxk_zk = Pˆxk_zk + ( np.matmul((Xᶦk[:,i].reshape((4,1)) - self.predicha ) , np.transpose(Zᶦk[:,i].reshape((4,1)) - Zˆk) ))
+            
         Pˆzk_zk  = Pˆzk_zk * 1/9
         Pˆxk_zk  = Pˆxk_zk * 1/9
 
