@@ -1,12 +1,12 @@
 from prettytable import PrettyTable
 import numpy as np
 import math
+import copy
 
 
 class Filtro():
-    def __init__(self,Xt,Zk,σQ , F):
-        self.Zk = Zk
-        self.Xˆk = Xt
+    def __init__(self,Xt,σQ , F):
+        self.Xˆk = copy.copy(Xt)
         self.σQ = σQ
         
         self.Q = np.array([[σQ[0][0]**2,0,0,0],[0,σQ[1][0]**2,0,0],[0,0,σQ[2][0]**2,0],[0,0,0,σQ[3][0]**2]])
@@ -14,44 +14,58 @@ class Filtro():
         self.PK = self.Q
         self.R = np.array([[σQ[0][0]**2,0,0,0],[0,σQ[1][0]**2,0,0],[0,0,σQ[2][0]**2,0],[0,0,0,σQ[3][0]**2]])
         self.F = F
-        self.X = None
+        self.predicha= None
+        #self.imprimir_resultados()
 
-        self.iniciar_proceso()
-        self.imprimir_resultados()
+    # sE APAGO MI CELULAR , AHORITA PRENDE
 
-    
-    def iniciar_proceso(self):
-        Xᶦk = np.zeros((4,9),)
+
+    def iniciar_proceso(self,Zk):
+        #self.Zk = Zk
         Pˆzk_zk = np.zeros((4,4),)
         Pˆxk_zk = np.zeros((4,4),)
 
-        self.Xˆk = np.matmul(self.F,self.Xˆk) #ᶦ
-        self.X = self.Xˆk
-        PˆK = np.matmul(np.matmul(self.F,self.PK),np.transpose(self.F))  + self.Q
-        Xᶦk = np.concatenate(( self.Xˆk , (self.Xˆk + (PˆK**1/2) )  , (self.Xˆk - (PˆK**1/2) )),axis=1)
+        print("Xˆk antes:", self.Xˆk)
+        self.Xˆk = np.matmul(self.F, self.Xˆk) #ᶦ
+        self.predicha = np.matmul(self.F, self.Xˆk) # predicha
+        print("Xˆk predicha:", self.predicha)
+
+        PˆK = np.matmul(np.matmul(self.F,self.PK),np.transpose(self.F))  + 1
+        Xᶦk = np.concatenate(( self.predicha, (self.predicha + (PˆK**1/2) )  , (self.predicha - (PˆK**1/2) )),axis=1)
 
         Zᶦk = self.H(Xᶦk) #+ np.random.normal(0,self.σQ**2)
-        Zˆk = np.mean(Zᶦk , axis=1).reshape((4,1))
-        print("Error:            ",Zˆk)
+        Zˆk = (np.mean(Zᶦk , axis=1)).reshape((4,1))
+        print("Xᶦk shape:", Xᶦk.shape)
+        print("Xᶦk:\n", Xᶦk)
+        print("Zᶦk:\n", Zᶦk)
         
         for i in range(0,9):
-            Pˆzk_zk = Pˆzk_zk + (np.matmul((Zᶦk[:,i]-Zˆk) , np.transpose(Zᶦk[:,i] - Zˆk) ) )
-            Pˆxk_zk = Pˆxk_zk + ( np.matmul((Xᶦk[:,i]-self.Xˆk) , np.transpose(Zᶦk[:,i] - Zˆk) ))
-            
-        print("Error:            ",Zᶦk[:,i]-Zˆk)
+            Pˆzk_zk = Pˆzk_zk + (np.matmul((Zᶦk[:,i].reshape((4,1)) - Zˆk) , np.transpose(Zᶦk[:,i].reshape((4,1)) - Zˆk) ) ) #Ok
+            Pˆxk_zk = Pˆxk_zk + ( np.matmul((Xᶦk[:,i].reshape((4,1)) - self.predicha ) , np.transpose(Zᶦk[:,i].reshape((4,1)) - Zˆk) ))
         Pˆzk_zk  = Pˆzk_zk * 1/9
         Pˆxk_zk  = Pˆxk_zk * 1/9
 
         K = np.matmul(Pˆxk_zk, np.linalg.pinv(Pˆzk_zk))
+        
+        """ print( K @ (Zk - Zˆk) ) """
+        self.Xˆk = self.predicha + ( ( K @ (Zk - Zˆk) ) ) #estimada
+        print("Xˆk final:", self.Xˆk)
 
-        self.Xˆk = self.Xˆk + np.matmul(K , self.Zk - Zˆk)
+        
+        """ print("Zk      ",Zk)
+        print("Z`k     :",Zˆk)
+        print("Ganancia:    ",K)
+        print("Multiplicar:    ",np.matmul(Pˆzk_zk, np.transpose(K)))
+        print("Multiplicar1:    ",( np.matmul ( K , np.matmul(Pˆzk_zk, np.transpose(K)) ) ))
+        print("Vector de estado actualizado:    ", self.Xˆk) """
+
         self.PK = PˆK - ( np.matmul ( K , np.matmul(Pˆzk_zk, np.transpose(K)) ) )
 
     def H(self,Xᶦk):
         vector = np.zeros((4,9),)
         for i in range(0,9):
-            vector[0][0] = math.atan2( Xᶦk[1][0],Xᶦk[0][0]) #angulo
-            vector[1][0] = math.sqrt((Xᶦk[0][0])**2 + (Xᶦk[1][0])**2)   #distancia
+            vector[0][i] = math.atan2( Xᶦk[1][i], Xᶦk[0][i]) #angulo
+            vector[1][i] = math.sqrt((Xᶦk[0][i])**2 + (Xᶦk[1][i])**2)   #distancia
         return vector
 
 

@@ -8,6 +8,7 @@ from module_python.proceso_real import Pelota
 from module_python.filtrado import Filtro
 
 import threading
+import copy
 
 class Ventana:
     def __init__(self, ventana):
@@ -101,33 +102,49 @@ class Ventana:
     def accion_boton(self):
         self.reiniciar_arreglos()
         dt,sx,svx,sy,svy = self.obtener_valor_variables()
+
         self.pelota = Pelota()
+        filtro = Filtro( self.pelota.Xk, self.pelota.σQ, self.pelota.F)
+        
         #self.filtro = Filtro(self.pelota.Xk, self.pelota.σQ, self.pelota.F)
+
         for i in range(10):
+            #self.graficar_por_iteracion()
+
+            filtro.iniciar_proceso(self.pelota.Zk)
+            
+            #filtro.imprimir_resultados()
+
+            self.x_real.append(self.pelota.Xk[0][0].copy()) #Real
+            self.y_real.append(self.pelota.Xk[1][0].copy()) #Real
+            print("X real: ", self.x_real[i])
+            print("y real: ", self.y_real[i])
+            self.x_predicha.append(filtro.predicha[0][0].copy()) #Predicha
+            self.y_predicha.append(filtro.predicha[1][0].copy()) #Predicha
+            self.x_predicha_uscented.append(filtro.Xˆk[0][0].copy()) #Estimada
+            self.y_predicha_uscented.append(filtro.Xˆk[1][0].copy()) #Estimada
+            print("X estimada: ", self.x_predicha_uscented[i])
+            print("Y estimada: ", self.y_predicha_uscented[i])
+
+            
+            print("X predicha: ", self.x_predicha[i])
+            print("X predicha: ", self.y_predicha[i])
+
+
+            print("-----------------------------------------")
+
+            #print(id(filtro.X),id(filtro.Xˆk))
             self.pelota.obtener_estado(self.pelota.Xk)
-            self.graficar_por_iteracion()
-            
-            filtro = Filtro(self.pelota.Xk,self.pelota.Zk, self.pelota.σQ, self.pelota.F)
-
-            self.x_real.append(self.pelota.Xk[0][0])
-            self.y_real.append(self.pelota.Xk[1][0])
-
-            self.x_predicha.append(filtro.X[0][0])
-            self.y_predicha.append(filtro.X[1][0])
-
-            self.x_predicha_uscented.append(filtro.Xˆk[0][0])
-            self.y_predicha_uscented.append(filtro.Xˆk[1][0])
             
 
-
-        print("X real: ", self.x_real)
+        """ print("X real: ", self.x_real)
         print("Y Real: ", self.y_real)
         print("X Predicha: ", self.x_predicha)
         print("Y Predicha: ", self.y_predicha)
-        print("X Predicha unscented: ", self.x_predicha_uscented)
-        print("Y Predicha unscented: ", self.y_predicha_uscented)
+        print("X Estimada: ", self.x_predicha_uscented)
+        print("Y Estimada: ", self.y_predicha_uscented) """
 
-        #self.graficar()
+        self.graficar()
         #self.tabla_de_datos()
         
     def graficar_por_iteracion(self):
@@ -135,9 +152,9 @@ class Ventana:
         plt.cla()
         plt.ion()
         plt.grid()
-        plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
-        plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
-        plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
+        plt.plot(copy.copy(self.x_real), copy.copy(self.y_real), marker='.',color='r') #marker='.'
+        plt.plot(copy.copy(self.x_predicha), copy.copy(self.y_predicha), marker='.',color='g')
+        plt.plot(copy.copy(self.x_predicha_uscented), copy.copy(self.y_predicha_uscented), marker='.',color='b')
         plt.legend(('Real', 'Predicha','Estimada'), prop = {'size': 10}, loc='upper left')
         plt.xlabel("x")
         plt.ylabel("y")
@@ -148,17 +165,23 @@ class Ventana:
         
 
     def graficar(self):
+        """ print("X real: ", self.x_real)
+        print("Y Real: ", self.y_real)
+        print("X Predicha: ", self.x_predicha)
+        print("Y Predicha: ", self.y_predicha)
+        print("X Estimada: ", self.x_predicha_uscented)
+        print("Y Estimada: ", self.y_predicha_uscented) """
         plt.figure()   #  Añade un nuevo gráfico y lo activa
         plt.grid()
-        plt.plot(self.x_real,self.y_real, linestyle='-',color='r') #marker='.'
-        plt.plot(self.x_predicha,self.y_predicha, linestyle='--',color='g')
-        plt.plot(self.x_predicha_uscented,self.y_predicha_uscented,linestyle=':',color='b')
+        plt.plot(self.x_real, self.y_real, marker='.', linestyle=":",color='r') #marker='.'
+        plt.plot(self.x_predicha_uscented, self.y_predicha_uscented , marker='.', linestyle=":",color='b') # estimada
+        plt.plot(self.x_predicha, self.y_predicha, marker='.', linestyle=":",color='g') # predicha
         plt.legend(('Real', 'Predicha','Estimada'), prop = {'size': 10}, loc='upper left')
         plt.xlabel("x")
         plt.ylabel("y")
         plt.title("Grafico Comparativo")
-        plt.close()
-        #plt.show()
+        #plt.close()
+        plt.show()
 
 
 
